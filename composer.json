@@ -1,0 +1,29 @@
+{
+    "name": "dreamfactory/{project_name}",
+    "description": "{project_description}",
+    "homepage": "https://www.dreamfactory.com/",
+    "keywords": ["dreamfactory"],
+    "license": ["Apache-2.0"],
+    "authors": [
+        {
+            "name": "{your_name}",
+            "email": "{your_email}"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "{namespace}\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-develop": "1.0.x-dev"
+        }
+    }
+}
