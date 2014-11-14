@@ -1,24 +1,26 @@
 {
-    "name": "dreamfactory/{project_name}",
-    "description": "{project_description}",
+    "name": "dreamfactory/enterprise-storage",
+    "description": "DreamFactory Enterprise(tm) Storage Provider",
     "homepage": "https://www.dreamfactory.com/",
-    "keywords": ["dreamfactory"],
+    "type": "library",
+    "keywords": ["dreamfactory", "enterprise", "storage"],
     "license": ["Apache-2.0"],
     "authors": [
         {
-            "name": "{your_name}",
-            "email": "{your_email}"
+            "name": "Jerry Ablan",
+            "email": "jerryablan@dreamfactory.com"
         }
     ],
     "minimum-stability": "dev",
     "require": {
+        "dreamfactory/php-utils": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "*"
     },
     "autoload": {
         "psr-4": {
-            "{namespace}\\": "src/"
+            "DreamFactory\\Library\\Storage\\Enterprise": "src/"
         }
     },
     "extra": {

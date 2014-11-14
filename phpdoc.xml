@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-    <title>{project_name}</title>
+	<title>DreamFactory Enterprise(tm) Storage Provider Library</title>
 	<parser>
-        <default-package-name>{namespace}</default-package-name>
+		<default-package-name>DreamFactory\Library\Storage\Enterprise</default-package-name>
 		<target>build/doc</target>
 		<markers>
 			<item>TODO</item>

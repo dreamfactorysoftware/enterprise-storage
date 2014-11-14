@@ -1,7 +1,7 @@
 <?php
 /**
- * All files in this repository are part of the {project_name}
- * Copyright 2014- DreamFactory Software, Inc. <support@dreamfactory.com>
+ * All files in this repository are part of the DreamFactory Enterprise(tm) Storage Provider Library
+ * Copyright (c) 2014- DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
