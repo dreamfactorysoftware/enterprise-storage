@@ -1,10 +1,10 @@
-## {project_name} Change Log
+## {project.name} Change Log
 
-## v{version} (Release {release_date})
+## v{project.version} (Release {project.release_date})
 ### Fixes
 * fix
 * fix
 
 ### New!
-* new
+* newa
 * new

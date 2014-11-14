@@ -1,4 +1,7 @@
+build/
 .idea/workspace.xml
 .idea/tasks.xml
 log/
+tests/config/keys.config.php
+tests/log/
 vendor/
