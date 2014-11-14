@@ -1,12 +1,12 @@
 <?php
-namespace DreamFactory\Library\Storage\Enterprise\Interfaces;
+namespace DreamFactory\Library\Enterprise\Storage\Interfaces;
 
-use DreamFactory\Platform\Enums\FabricStoragePaths;
+use DreamFactory\Library\Enterprise\Storage\Enums\EnterprisePaths;
 
 /**
- * A provider of storage to a hosted cluster
+ * Something that can resolve enterprise storage structure
  */
-interface StorageProviderLike
+interface StructureResolverLike
 {
     //*************************************************************************
     //* Methods
@@ -21,7 +21,7 @@ interface StorageProviderLike
      *
      * @return string
      */
-    public function initialize( $hostname, $mountPoint = FabricStoragePaths::STORAGE_MOUNT_POINT );
+    public function initialize( $hostname, $mountPoint = EnterprisePaths::MOUNT_POINT );
 
     /**
      * Returns the owner's storage id

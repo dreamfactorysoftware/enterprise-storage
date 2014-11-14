@@ -2,7 +2,7 @@
 <phpdoc>
 	<title>DreamFactory Enterprise(tm) Storage Provider Library</title>
 	<parser>
-		<default-package-name>DreamFactory\Library\Storage\Enterprise</default-package-name>
+		<default-package-name>DreamFactory\Library\Enterprise\Storage</default-package-name>
 		<target>build/doc</target>
 		<markers>
 			<item>TODO</item>

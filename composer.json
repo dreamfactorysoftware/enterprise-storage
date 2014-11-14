@@ -20,7 +20,7 @@
     },
     "autoload": {
         "psr-4": {
-            "DreamFactory\\Library\\Storage\\Enterprise": "src/"
+            "DreamFactory\\Library\\Enterprise\\Storage\\": "src/"
         }
     },
     "extra": {
