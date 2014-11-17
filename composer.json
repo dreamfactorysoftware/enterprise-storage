@@ -14,9 +14,10 @@
     "minimum-stability": "dev",
     "require": {
         "dreamfactory/php-utils": "~1.0"
+        "doctrine/cache": "@stable"
     },
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "@stable"
     },
     "autoload": {
         "psr-4": {

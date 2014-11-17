@@ -32,7 +32,7 @@ interface PlatformStructureResolverLike extends StructureResolverLike
      *
      * @return string
      */
-    public function getLocalConfigPath( $append = null, $createIfMissing = true, $includesFile = false );
+    public function getPrivateConfigPath( $append = null, $createIfMissing = true, $includesFile = false );
 
     /**
      * Returns the platform configuration path, in the root
@@ -43,18 +43,7 @@ interface PlatformStructureResolverLike extends StructureResolverLike
      *
      * @return string
      */
-    public function getPlatformConfigPath( $append = null, $createIfMissing = true, $includesFile = false );
-
-    /**
-     * Constructs the private snapshot path
-     *
-     * @param string $append          What to append to the base
-     * @param bool   $createIfMissing If true and final directory does not exist, it is created.
-     * @param bool   $includesFile    If true, the $base includes a file and is not just a directory
-     *
-     * @return string
-     */
-    public function getSnapshotPath( $append = null, $createIfMissing = true, $includesFile = false );
+    public function getConfigPath( $append = null, $createIfMissing = true, $includesFile = false );
 
     /**
      * Constructs the plugins path

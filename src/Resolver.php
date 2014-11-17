@@ -43,7 +43,7 @@ use DreamFactory\Library\Utility\IfSet;
  * /storage/.private/scripts
  * /storage/.private/scripts.user
  */
-class Provider extends EnterprisePaths implements PlatformStructureResolverLike
+class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
 {
     //*************************************************************************
     //* Constants
@@ -83,17 +83,6 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
      */
     protected $_paths;
 
-    /**
-     * @return bool True if the running system is an enterprise installation
-     */
-    public function isEnterpriseInstallation()
-    {
-        $_documentRoot = IfSet::get( $_SERVER, 'DOCUMENT_ROOT' );
-
-        return
-            $_documentRoot == EnterpriseDefaults::DEFAULT_DOC_ROOT && file_exists( EnterpriseDefaults::ENTERPRISE_MARKER );
-    }
-
     //*************************************************************************
     //* Methods
     //*************************************************************************
@@ -111,7 +100,7 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
         $this->_storageId = hash( static::DATA_STORAGE_HASH, $hostname );
 
         //  Check the cache
-        if ( $this->_getCache() && false !== ( $_data = $this->_cache->fetch( $this->_storageId ) ) )
+        if ( false !== ( $_data = $this->_getCache()->fetch( $this->_storageId ) ) )
         {
             list( $this->_mountPoint, $this->_zone, $this->_partition, $this->_paths ) = $_data;
 
@@ -132,6 +121,17 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
             $this->_mountPoint,
             $this->_mountPoint . static::STORAGE_PATH . $this->getStorageKey( null, true )
         );
+    }
+
+    /**
+     * @return bool True if the running system is an enterprise installation
+     */
+    public function isEnterpriseInstallation()
+    {
+        $_documentRoot = IfSet::get( $_SERVER, 'DOCUMENT_ROOT' );
+
+        return
+            $_documentRoot == EnterpriseDefaults::DEFAULT_DOC_ROOT && file_exists( EnterpriseDefaults::ENTERPRISE_MARKER );
     }
 
     /**
@@ -215,7 +215,7 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
         //	Make a cache tag that includes the requested path...
         $_cacheKey = hash( static::DATA_STORAGE_HASH, $base . $_appendage );
 
-        $_path = $this->_cache->fetch( $_cacheKey );
+        $_path = $this->_getCache()->fetch( $_cacheKey );
 
         if ( empty( $_path ) )
         {
@@ -238,7 +238,7 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
             $_path .= $_appendage;
 
             //	Store path for next time...
-            $this->_cache->save( $_cacheKey, $_path, static::DEFAULT_CACHE_TTL );
+            $this->_getCache()->save( $_cacheKey, $_path, static::DEFAULT_CACHE_TTL );
         }
 
         return $_path;
@@ -278,8 +278,7 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
         }
 
         //  Cache it
-        $this->_cache &&
-        $this->_cache->save(
+        $this->_getCache()->save(
             $this->_storageId,
             array($mountPoint, $this->_zone, $this->_partition, $this->_paths),
             static::DEFAULT_CACHE_TTL
@@ -325,7 +324,7 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
      *
      * @return string
      */
-    public function getLocalConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
+    public function getPrivateConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->getPrivatePath( static::CONFIG_PATH ), $append, $createIfMissing, $includesFile );
     }
@@ -339,23 +338,9 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
      *
      * @return string
      */
-    public function getPlatformConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
+    public function getConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->_findBasePath() . static::CONFIG_PATH, $append, $createIfMissing, $includesFile );
-    }
-
-    /**
-     * Constructs the virtual private path
-     *
-     * @param string $append          What to append to the base
-     * @param bool   $createIfMissing If true and final directory does not exist, it is created.
-     * @param bool   $includesFile    If true, the $base includes a file and is not just a directory
-     *
-     * @return string
-     */
-    public function getSnapshotPath( $append = null, $createIfMissing = true, $includesFile = false )
-    {
-        return $this->_buildPath( $this->getPrivatePath( static::SNAPSHOT_PATH ), $append, $createIfMissing, $includesFile );
     }
 
     /**
@@ -459,7 +444,7 @@ class Provider extends EnterprisePaths implements PlatformStructureResolverLike
                 ?: new FilesystemCache(
                     sys_get_temp_dir() . DIRECTORY_SEPARATOR .
                     '.dreamfactory' . DIRECTORY_SEPARATOR .
-                    'dfe-storage' . DIRECTORY_SEPARATOR .
+                    '.compiled' . DIRECTORY_SEPARATOR .
                     sha1( $this->_storageId ), static::DEFAULT_CACHE_EXTENSION
                 );
     }
