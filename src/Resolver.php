@@ -6,7 +6,7 @@ use Doctrine\Common\Cache\FilesystemCache;
 use DreamFactory\Library\Enterprise\Storage\Enums\EnterpriseDefaults;
 use DreamFactory\Library\Enterprise\Storage\Enums\EnterpriseKeys;
 use DreamFactory\Library\Enterprise\Storage\Enums\EnterprisePaths;
-use DreamFactory\Library\Enterprise\Storage\Interfaces\PlatformStructureResolverLike;
+use DreamFactory\Library\Enterprise\Storage\Interfaces\PlatformStorageResolverLike;
 use DreamFactory\Library\Utility\Exceptions\FileSystemException;
 use DreamFactory\Library\Utility\FileSystem;
 use DreamFactory\Library\Utility\IfSet;
@@ -43,7 +43,7 @@ use DreamFactory\Library\Utility\IfSet;
  * /storage/.private/scripts
  * /storage/.private/scripts.user
  */
-class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
+class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
 {
     //*************************************************************************
     //* Constants
@@ -65,15 +65,15 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
     /**
      * @type string The absolute storage root path
      */
-    protected $_mountPoint;
+    protected $_mountPoint = null;
     /**
      * @type string The deployment zone name/id
      */
-    protected $_zone;
+    protected $_zone = null;
     /**
      * @type string The storage partition name/id
      */
-    protected $_partition;
+    protected $_partition = null;
     /**
      * @type CacheProvider
      */
@@ -82,17 +82,26 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
      * @type array Array of calculated paths
      */
     protected $_paths;
+    /**
+     * @type bool If true, structure resolved will be laid out in a partitioned manner
+     */
+    protected $_partitionedLayout = false;
 
     //*************************************************************************
     //* Methods
     //*************************************************************************
 
     /** @inheritdoc */
-    public function initialize( $hostname, $mountPoint = EnterprisePaths::MOUNT_POINT )
+    public function initialize( $hostname, $mountPoint = null, $installRoot = null )
     {
+        $this->_zone = $this->_partition = null;
+
+        $installRoot = $installRoot ?: $this->_findInstallRoot();
+
         $this->_paths = array(
-            EnterpriseKeys::INSTALL_ROOT_KEY => $this->_findBasePath(),
-            EnterpriseKeys::MOUNT_POINT_KEY  => $this->_mountPoint = $this->_mountPoint ?: $mountPoint,
+            EnterpriseKeys::INSTALL_ROOT_KEY       => $installRoot,
+            EnterpriseKeys::SYSTEM_CONFIG_PATH_KEY => $installRoot . static::CONFIG_PATH,
+            EnterpriseKeys::MOUNT_POINT_KEY        => $this->_mountPoint = $this->_mountPoint ?: $mountPoint,
         );
 
         false !== stripos( $hostname, EnterpriseDefaults::PLATFORM_VIRTUAL_SUBDOMAIN ) || $hostname .= EnterpriseDefaults::PLATFORM_VIRTUAL_SUBDOMAIN;
@@ -100,38 +109,31 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
         $this->_storageId = hash( static::DATA_STORAGE_HASH, $hostname );
 
         //  Check the cache
-        if ( false !== ( $_data = $this->_getCache()->fetch( $this->_storageId ) ) )
-        {
-            list( $this->_mountPoint, $this->_zone, $this->_partition, $this->_paths ) = $_data;
-
-            return;
-        }
-
-        $this->_partition = substr( $this->_storageId, 0, 2 );
+//        if ( false !== ( $_data = $this->_getCache()->fetch( $this->_storageId ) ) )
+//        {
+//            list( $this->_mountPoint, $this->_zone, $this->_partition, $this->_paths ) = $_data;
+//
+//            return;
+//        }
 
         //  Find the zone for this host
-        if ( false === ( $this->_zone = $this->_findZone( static::DEBUG_ZONE_NAME ) ) )
+        if ( $this->_partitionedLayout )
         {
-            //  Local installation
-            $this->_mountPoint = $this->_paths[EnterpriseKeys::INSTALL_ROOT_KEY];
+            if ( false === ( $this->_zone = $this->_findZone( static::DEBUG_ZONE_NAME ) ) )
+            {
+                //  Local installation
+                $this->_mountPoint = $this->_paths[EnterpriseKeys::MOUNT_POINT_KEY] = $this->_paths[EnterpriseKeys::INSTALL_ROOT_KEY];
+            }
+
+            //  Find the partition
+            $this->_partition = substr( $this->_storageId, 0, 2 );
         }
 
-        //  Hosted
-        $this->_setStoragePaths(
+        //  Set the paths
+        $this->_createStructure(
             $this->_mountPoint,
-            $this->_mountPoint . static::STORAGE_PATH . $this->getStorageKey( null, true )
+            $this->_mountPoint . static::STORAGE_PATH . DIRECTORY_SEPARATOR . $this->getStorageKey()
         );
-    }
-
-    /**
-     * @return bool True if the running system is an enterprise installation
-     */
-    public function isEnterpriseInstallation()
-    {
-        $_documentRoot = IfSet::get( $_SERVER, 'DOCUMENT_ROOT' );
-
-        return
-            $_documentRoot == EnterpriseDefaults::DEFAULT_DOC_ROOT && file_exists( EnterpriseDefaults::ENTERPRISE_MARKER );
     }
 
     /**
@@ -148,7 +150,7 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
             return $zone;
         }
 
-        if ( !static::isEnterpriseInstallation() )
+        if ( !$this->_partitionedLayout )
         {
             return false;
         }
@@ -175,7 +177,7 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
      *
      * @return string
      */
-    protected function _findBasePath( $start = null )
+    protected function _findInstallRoot( $start = null )
     {
         $_path = $start ?: getcwd();
 
@@ -195,6 +197,53 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
         }
 
         return $_path;
+    }
+
+    /**
+     * Give a storage path, set up the default sub paths...
+     *
+     * @param string $mountPoint
+     *
+     * @throws FileSystemException
+     * @return array
+     */
+    protected function _createStructure( $mountPoint )
+    {
+        $_storagePath = rtrim( $mountPoint . static::STORAGE_PATH . DIRECTORY_SEPARATOR . $this->getStorageKey(), DIRECTORY_SEPARATOR );
+        $_privatePath = rtrim( $mountPoint . static::STORAGE_PATH . DIRECTORY_SEPARATOR . $this->getPrivateStorageKey(), DIRECTORY_SEPARATOR );
+
+        $this->_paths = array_merge(
+            is_array( $this->_paths ) ? $this->_paths : array(),
+            array(
+                Enterprisekeys::STORAGE_PATH_KEY         => $_storagePath,
+                Enterprisekeys::PRIVATE_STORAGE_PATH_KEY => $_privatePath,
+                Enterprisekeys::APPLICATIONS_PATH_KEY    => $_storagePath . static::APPLICATIONS_PATH,
+                Enterprisekeys::PLUGINS_PATH_KEY         => $_storagePath . static::PLUGINS_PATH,
+                Enterprisekeys::LOCAL_CONFIG_PATH_KEY    => $_privatePath . static::CONFIG_PATH,
+                Enterprisekeys::PRIVATE_CONFIG_PATH_KEY  => $_privatePath . static::CONFIG_PATH,
+                Enterprisekeys::SCRIPTS_PATH_KEY         => $_privatePath . static::SCRIPTS_PATH,
+                Enterprisekeys::USER_SCRIPTS_PATH_KEY    => $_privatePath . static::USER_SCRIPTS_PATH,
+            )
+        );
+
+        // Ensures the directories in the structure are created and available.
+        // Only template items that are arrays are processed.
+        foreach ( $this->_paths as $_id => $_path )
+        {
+            if ( !FileSystem::ensurePath( $_path ) )
+            {
+                throw new FileSystemException( 'Unable to create storage path "' . $_path . '"' );
+            }
+        }
+
+        //  Cache it
+        $this->_getCache()->save(
+            $this->_storageId,
+            array($mountPoint, $this->_zone, $this->_partition, $this->_paths),
+            static::DEFAULT_CACHE_TTL
+        );
+
+        return $this->_paths;
     }
 
     /**
@@ -245,49 +294,6 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
     }
 
     /**
-     * Give a storage path, set up the default sub paths...
-     *
-     * @param string $mountPoint
-     *
-     * @throws FileSystemException
-     * @return array
-     */
-    protected function _setStoragePaths( $mountPoint )
-    {
-        $_storagePath = $mountPoint . static::STORAGE_PATH . $this->getStorageKey( null, true );
-        $_privatePath = $_storagePath . $this->getPrivateStorageKey( null, true );
-
-        $this->_paths = array(
-            Enterprisekeys::STORAGE_PATH_KEY         => $_storagePath,
-            Enterprisekeys::PRIVATE_STORAGE_PATH_KEY => $_privatePath,
-            Enterprisekeys::APPLICATIONS_PATH_KEY    => $_storagePath . static::APPLICATIONS_PATH,
-            Enterprisekeys::PLUGINS_PATH_KEY         => $_storagePath . static::PLUGINS_PATH,
-            Enterprisekeys::LOCAL_CONFIG_PATH_KEY    => $_privatePath . static::CONFIG_PATH,
-            Enterprisekeys::SCRIPTS_PATH_KEY         => $_privatePath . static::SCRIPTS_PATH,
-            Enterprisekeys::USER_SCRIPTS_PATH_KEY    => $_privatePath . static::USER_SCRIPTS_PATH,
-        );
-
-        // Ensures the directories in the structure are created and available.
-        // Only template items that are arrays are processed.
-        foreach ( $this->_paths as $_id => $_path )
-        {
-            if ( !FileSystem::ensurePath( $_path ) )
-            {
-                throw new FileSystemException( 'Unable to create storage path "' . $_path . '"' );
-            }
-        }
-
-        //  Cache it
-        $this->_getCache()->save(
-            $this->_storageId,
-            array($mountPoint, $this->_zone, $this->_partition, $this->_paths),
-            static::DEFAULT_CACHE_TTL
-        );
-
-        return $this->_paths;
-    }
-
-    /**
      * Constructs the virtual storage path
      *
      * @param string $append          What to append to the base
@@ -298,7 +304,7 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
      */
     public function getStoragePath( $append = null, $createIfMissing = true, $includesFile = false )
     {
-        return $this->_buildPath( $this->_paths[EnterpriseKeys::SCRIPTS_PATH_KEY], $append, $createIfMissing, $includesFile );
+        return $this->_buildPath( $this->_paths[EnterpriseKeys::STORAGE_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
 
     /**
@@ -326,7 +332,7 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
      */
     public function getPrivateConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
-        return $this->_buildPath( $this->getPrivatePath( static::CONFIG_PATH ), $append, $createIfMissing, $includesFile );
+        return $this->_buildPath( $this->_paths[EnterpriseKeys::PRIVATE_CONFIG_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
 
     /**
@@ -340,7 +346,7 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
      */
     public function getConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
-        return $this->_buildPath( $this->_findBasePath() . static::CONFIG_PATH, $append, $createIfMissing, $includesFile );
+        return $this->_buildPath( $this->_paths[EnterpriseKeys::SYSTEM_CONFIG_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
 
     /**
@@ -354,11 +360,11 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
      */
     public function getPluginsPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
-        return $this->_buildPath( $this->getStoragePath( static::PLUGINS_PATH ), $append, $createIfMissing, $includesFile );
+        return $this->_buildPath( $this->_paths[EnterpriseKeys::PLUGINS_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
 
     /**
-     * Constructs the virtual private path
+     * Constructs the virtual applications path
      *
      * @param string $append          What to append to the base
      * @param bool   $createIfMissing If true and final directory does not exist, it is created.
@@ -368,50 +374,67 @@ class Resolver extends EnterprisePaths implements PlatformStructureResolverLike
      */
     public function getApplicationsPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
-        return $this->_buildPath( $this->getStoragePath( static::APPLICATIONS_PATH ), $append, $createIfMissing, $includesFile );
+        return $this->_buildPath( $this->_paths[EnterpriseKeys::APPLICATIONS_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
 
     /**
      * @param string $legacyKey
-     * @param bool   $asPath If true, a leading directory separator is added to the return
      *
      * @return string The zone/partition/id that make up the new public storage key. Local installs return null
      */
-    public function getStorageKey( $legacyKey = null, $asPath = false )
+    public function getStorageKey( $legacyKey = null )
     {
-        static $_storageKey = null;
+        $_storageKey = null;
 
-        if ( !$_storageKey && ( empty( $this->_zone ) || empty( $this->_partition ) || empty( $this->_storageId ) ) )
+        if ( $this->_partitionedLayout )
         {
-            return $legacyKey;
+            $_storageKey = $this->_zone . DIRECTORY_SEPARATOR .
+                $this->_partition . DIRECTORY_SEPARATOR .
+                $this->_storageId;
         }
 
-        return
-            $_storageKey = $_storageKey
-                ?: ( $asPath ? DIRECTORY_SEPARATOR : null ) . $this->_zone .
-                DIRECTORY_SEPARATOR . $this->_partition .
-                DIRECTORY_SEPARATOR . $this->_storageId;
+        if ( empty( $_storageKey ) )
+        {
+            $_storageKey = $legacyKey;
+        }
+
+        return $_storageKey;
     }
 
     /**
      * @param string $legacyKey
-     * @param bool   $asPath If true, a leading directory separator is added to the return
      *
      * @return bool|string The zone/partition/id/tag that make up the new private storage key
      */
-    public function getPrivateStorageKey( $legacyKey = null, $asPath = false )
+    public function getPrivateStorageKey( $legacyKey = null )
     {
-        static $_privateKey = null;
-
-        return
-            $_privateKey =
-                $_privateKey ?: $this->getStorageKey( $legacyKey, $asPath ) . static::PRIVATE_STORAGE_PATH;
+        return $this->getStorageKey( $legacyKey ) . static::PRIVATE_STORAGE_PATH;
     }
 
     /** @inheritdoc */
     public function getStorageId()
     {
         return $this->_storageId;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isPartitionedLayout()
+    {
+        return $this->_partitionedLayout;
+    }
+
+    /**
+     * @param boolean $partitionedLayout
+     *
+     * @return Resolver
+     */
+    public function setPartitionedLayout( $partitionedLayout )
+    {
+        $this->_partitionedLayout = $partitionedLayout;
+
+        return $this;
     }
 
     /**

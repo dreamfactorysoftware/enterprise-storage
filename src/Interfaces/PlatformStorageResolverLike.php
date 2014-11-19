@@ -2,9 +2,9 @@
 namespace DreamFactory\Library\Enterprise\Storage\Interfaces;
 
 /**
- * A service that can resolve DSP/DFE structure details
+ * A service that can resolve DSP/DFE storage structure
  */
-interface PlatformStructureResolverLike extends StructureResolverLike
+interface PlatformStorageResolverLike extends StorageResolverLike
 {
     //******************************************************************************
     //* Constants

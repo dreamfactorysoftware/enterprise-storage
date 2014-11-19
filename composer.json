@@ -13,7 +13,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "dreamfactory/php-utils": "~1.0"
+        "dreamfactory/php-utils": "~1.0",
         "doctrine/cache": "@stable"
     },
     "require-dev": {

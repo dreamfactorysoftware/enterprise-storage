@@ -61,6 +61,14 @@ class EnterpriseKeys extends FactoryEnum
      */
     const LOCAL_CONFIG_PATH_KEY = 'local_config_path';
     /**
+     * @type string The relative path to the private config path
+     */
+    const PRIVATE_CONFIG_PATH_KEY = 'private_config_path';
+    /**
+     * @type string The relative path to the system config path
+     */
+    const SYSTEM_CONFIG_PATH_KEY = 'system_config_path';
+    /**
      * @type string The relative path to any script files
      */
     const SCRIPTS_PATH_KEY = 'scripts_path';

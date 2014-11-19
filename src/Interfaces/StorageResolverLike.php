@@ -1,12 +1,10 @@
 <?php
 namespace DreamFactory\Library\Enterprise\Storage\Interfaces;
 
-use DreamFactory\Library\Enterprise\Storage\Enums\EnterprisePaths;
-
 /**
  * Something that can resolve enterprise storage structure
  */
-interface StructureResolverLike
+interface StorageResolverLike
 {
     //*************************************************************************
     //* Methods
@@ -16,12 +14,13 @@ interface StructureResolverLike
      * Given a host name and an optional mount point, derive the storage keys
      * and directory structure of the storage space for $hostname
      *
-     * @param string $hostname   The storage owner's host name
-     * @param string $mountPoint Optional storage mount point
+     * @param string $hostname    The storage owner's host name
+     * @param string $mountPoint  Optional storage mount point
+     * @param string $installRoot Absolute path to installation root
      *
      * @return string
      */
-    public function initialize( $hostname, $mountPoint = EnterprisePaths::MOUNT_POINT );
+    public function initialize( $hostname, $mountPoint = null, $installRoot = null );
 
     /**
      * Returns the owner's storage id
