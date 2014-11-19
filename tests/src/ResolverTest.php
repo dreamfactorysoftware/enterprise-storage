@@ -22,6 +22,9 @@ class ProviderTest extends \PHPUnit_Framework_TestCase
     /** @type PlatformStorageResolverLike */
     protected $_resolver;
 
+    /**
+     * @covers \DreamFactory\Library\Enterprise\Storage\Resolver::getStoragePath()
+     */
     public function testGetStoragePath()
     {
         $_storagePath = $this->_getResolver( true, $this->_hostname, $this->_mountPoint, $this->_installRoot )->getStoragePath();
@@ -45,6 +48,9 @@ class ProviderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals( $_storagePath, $_testPath );
     }
 
+    /**
+     * @covers \DreamFactory\Library\Enterprise\Storage\Resolver::getPrivatePath()
+     */
     public function testGetPrivatePath()
     {
         $this->_mountPoint = '/data';
@@ -60,14 +66,30 @@ class ProviderTest extends \PHPUnit_Framework_TestCase
 
         $this->_mountPoint = '/opt/dreamfactory/dsp/dsp-core';
         $_privatePath = $this->_getResolver( false, $this->_hostname, $this->_installRoot, $this->_installRoot )->getPrivatePath();
+        $_testPath = $this->_installRoot . EnterprisePaths::STORAGE_PATH . EnterprisePaths::PRIVATE_STORAGE_PATH;
 
-        $this->assertEquals( $_privatePath, $this->_mountPoint . EnterprisePaths::STORAGE_PATH );
+        $this->assertEquals( $_privatePath, $_testPath );
     }
 
+    /**
+     * @covers \DreamFactory\Library\Enterprise\Storage\Resolver::setPartitioned()
+     * @covers \DreamFactory\Library\Enterprise\Storage\Resolver::isPartitioned()
+     * @covers \DreamFactory\Library\Enterprise\Storage\Resolver::initialize()
+     *
+     * @param bool   $partitionedLayout
+     * @param string $hostname
+     * @param string $mountPoint
+     * @param string $installRoot
+     *
+     * @return Resolver
+     */
     protected function _getResolver( $partitionedLayout = false, $hostname = null, $mountPoint = null, $installRoot = null )
     {
         $_resolver = new Resolver();
-        $_resolver->setPartitionedLayout( $partitionedLayout );
+        $_resolver->setPartitioned( $partitionedLayout );
+
+        $this->assertEquals( $partitionedLayout, $_resolver->isPartitioned() );
+
         $_resolver->initialize( $hostname ?: $this->_hostname, $mountPoint ?: $this->_mountPoint, $installRoot ?: $this->_installRoot );
 
         return $this->_resolver = $_resolver;
