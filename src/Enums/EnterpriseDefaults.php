@@ -39,6 +39,10 @@ class EnterpriseDefaults extends FactoryEnum
     /**
      * @var string
      */
+    const FABRIC_MARKER = '/var/www/.fabric_hosted';
+    /**
+     * @var string
+     */
     const ENTERPRISE_MARKER = '/var/www/.dfe_hosted';
     /**
      * @var string
