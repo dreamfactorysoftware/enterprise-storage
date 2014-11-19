@@ -6,6 +6,7 @@ use Doctrine\Common\Cache\FilesystemCache;
 use DreamFactory\Library\Enterprise\Storage\Enums\EnterpriseDefaults;
 use DreamFactory\Library\Enterprise\Storage\Enums\EnterpriseKeys;
 use DreamFactory\Library\Enterprise\Storage\Enums\EnterprisePaths;
+use DreamFactory\Library\Enterprise\Storage\Enums\EnterpriseResources;
 use DreamFactory\Library\Enterprise\Storage\Interfaces\PlatformStorageResolverLike;
 use DreamFactory\Library\Utility\Exceptions\FileSystemException;
 use DreamFactory\Library\Utility\FileSystem;
@@ -14,7 +15,8 @@ use DreamFactory\Library\Utility\IfSet;
 /**
  * DreamFactory Enterprise(tm) and Services Platform Storage Resolver
  *
- * The layout of the hosted storage area is as follows:
+ * The default functionality (Resolver::$partitioned is set to TRUE) of this resolver is to provide partitioned
+ * layout paths for the hosted storage area. The structure generated is as follows:
  *
  * /mount_point                             <----- Mount point/absolute path of storage area
  *      /storage                            <----- Root directory of hosted storage
@@ -28,20 +30,24 @@ use DreamFactory\Library\Utility\IfSet;
  * /data/storage/ec2.us-east-1/33/33f58e59068f021c975a1cac49c7b6818de9df5831d89677201b9c3bd98ee1ed/applications
  * /data/storage/ec2.us-east-1/33/33f58e59068f021c975a1cac49c7b6818de9df5831d89677201b9c3bd98ee1ed/plugins
  * /data/storage/ec2.us-east-1/33/33f58e59068f021c975a1cac49c7b6818de9df5831d89677201b9c3bd98ee1ed/.private
+ * /data/storage/ec2.us-east-1/33/33f58e59068f021c975a1cac49c7b6818de9df5831d89677201b9c3bd98ee1ed/.private/.cache
  * /data/storage/ec2.us-east-1/33/33f58e59068f021c975a1cac49c7b6818de9df5831d89677201b9c3bd98ee1ed/.private/config
  * /data/storage/ec2.us-east-1/33/33f58e59068f021c975a1cac49c7b6818de9df5831d89677201b9c3bd98ee1ed/.private/scripts
  * /data/storage/ec2.us-east-1/33/33f58e59068f021c975a1cac49c7b6818de9df5831d89677201b9c3bd98ee1ed/.private/scripts.user
  *
- * This class also provides path mapping for non-hosted DSPs as well. The directory is located in the
- * root installation path of the platform. The structure is as follows:
+ * This class also provides path mapping for non-hosted DSPs as well. Set the $partitioned property to FALSE
+ * for this functionality. The structure will use the installation path as a mount point.
  *
- * /storage/
- * /storage/applications
- * /storage/plugins
- * /storage/.private
- * /storage/.private/config
- * /storage/.private/scripts
- * /storage/.private/scripts.user
+ * The structure is as follows:
+ *
+ * install_root/storage/
+ * install_root/storage/applications
+ * install_root/storage/plugins
+ * install_root/storage/.private
+ * install_root/storage/.private/config
+ * install_root/storage/.private/.cache
+ * install_root/storage/.private/scripts
+ * install_root/storage/.private/scripts.user
  */
 class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
 {
@@ -59,9 +65,17 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     //******************************************************************************
 
     /**
+     * @type bool If true, structure resolved will be laid out in a partitioned manner
+     */
+    protected $_partitioned = true;
+    /**
      * @type string This instance's storage ID
      */
     protected $_storageId;
+    /**
+     * @type string This instance's host name
+     */
+    protected $_hostname;
     /**
      * @type string The absolute storage root path
      */
@@ -83,9 +97,9 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      */
     protected $_paths;
     /**
-     * @type bool If true, structure resolved will be laid out in a partitioned manner
+     * @type callable[] An array of resource locators
      */
-    protected $_partitionedLayout = false;
+    protected $_locators = array();
 
     //*************************************************************************
     //* Methods
@@ -94,9 +108,10 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     /** @inheritdoc */
     public function initialize( $hostname, $mountPoint = null, $installRoot = null )
     {
+        $this->_hostname = $hostname;
         $this->_zone = $this->_partition = null;
 
-        $installRoot = $installRoot ?: $this->_findInstallRoot();
+        $installRoot = $installRoot ?: $this->_locateInstallRoot();
 
         $this->_paths = array(
             EnterpriseKeys::INSTALL_ROOT_KEY       => $installRoot,
@@ -117,17 +132,14 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
 //        }
 
         //  Find the zone for this host
-        if ( $this->_partitionedLayout )
+        if ( false === ( $this->_zone = $this->_locateZone( static::DEBUG_ZONE_NAME ) ) )
         {
-            if ( false === ( $this->_zone = $this->_findZone( static::DEBUG_ZONE_NAME ) ) )
-            {
-                //  Local installation
-                $this->_mountPoint = $this->_paths[EnterpriseKeys::MOUNT_POINT_KEY] = $this->_paths[EnterpriseKeys::INSTALL_ROOT_KEY];
-            }
-
-            //  Find the partition
-            $this->_partition = substr( $this->_storageId, 0, 2 );
+            //  Local installation
+            $this->_mountPoint = $this->_paths[EnterpriseKeys::MOUNT_POINT_KEY] = $this->_paths[EnterpriseKeys::INSTALL_ROOT_KEY];
         }
+
+        //  Find the partition
+        $this->_partition = $this->_locatePartition( $this->_storageId );
 
         //  Set the paths
         $this->_createStructure(
@@ -137,37 +149,83 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     }
 
     /**
+     * Registers a resource locator with the resolver
+     *
+     * @param string   $resource
+     * @param callable $locator
+     *
+     * @return $this
+     */
+    public function registerLocator( $resource, $locator )
+    {
+        if ( !is_callable( $locator ) )
+        {
+            throw new \InvalidArgumentException( 'The $locator provided must be callable.' );
+        }
+
+        if ( EnterpriseResources::contains( $resource ) )
+        {
+            throw new \InvalidArgumentException( 'The $resource "' . $resource . '" is not valid.' );
+        }
+
+        $this->_locators[$resource] = $locator;
+
+        return $this;
+    }
+
+    /**
      * Find the zone of this cluster
      *
      * @param string $zone
      *
      * @return bool|mixed|null
      */
-    protected function _findZone( $zone = null )
+    protected function _locateZone( $zone = null )
     {
+        //  Use location service if registered
+        if ( isset( $_locators[EnterpriseResources::ZONE] ) )
+        {
+            return call_user_func( $_locators[EnterpriseResources::ZONE], $zone, $this->_partitioned );
+        }
+
+        //  Zones only apply to partitioned layouts
+        if ( !$this->_partitioned )
+        {
+            return false;
+        }
+
+        //  If a zone was passed in, use it
         if ( !empty( $zone ) )
         {
             return $zone;
         }
 
-        if ( !$this->_partitionedLayout )
+        //  No zone... :(
+        return false;
+    }
+
+    /**
+     * Find the zone of this cluster
+     *
+     * @param string $storageId
+     *
+     * @return bool|string The partition or false if no partition available/used/needed
+     */
+    protected function _locatePartition( $storageId )
+    {
+        //  Use location service if registered
+        if ( isset( $_locators[EnterpriseResources::PARTITION] ) )
+        {
+            return call_user_func( $_locators[EnterpriseResources::PARTITION], $storageId, $this->_partitioned );
+        }
+
+        //  Partitions only apply to partitioned layouts
+        if ( !$this->_partitioned )
         {
             return false;
         }
 
-        //  Try ec2...
-        $_url = getenv( 'EC2_URL' ) ?: static::DEBUG_ZONE_URL;
-
-        //  Not on EC2, we're something else
-        if ( empty( $_url ) )
-        {
-            return false;
-        }
-
-        //  Get the EC2 zone of this instance from the url
-        $_zone = str_ireplace( array('https://', '.amazonaws.com'), null, $_url );
-
-        return $_zone;
+        return substr( $storageId, 0, 2 );
     }
 
     /**
@@ -177,9 +235,15 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    protected function _findInstallRoot( $start = null )
+    protected function _locateInstallRoot( $start = null )
     {
         $_path = $start ?: getcwd();
+
+        //  Use location service if registered
+        if ( isset( $_locators[EnterpriseResources::INSTALL_ROOT] ) )
+        {
+            return call_user_func( $_locators[EnterpriseResources::INSTALL_ROOT], $_path, $this->_partitioned );
+        }
 
         while ( true )
         {
@@ -294,6 +358,26 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     }
 
     /**
+     * @return CacheProvider
+     */
+    protected function _getCache()
+    {
+        if ( empty( $this->_storageId ) )
+        {
+            throw new \LogicException( 'Cannot create a cache file without a storage id.' );
+        }
+
+        return
+            $this->_cache = $this->_cache
+                ?: new FilesystemCache(
+                    sys_get_temp_dir() . DIRECTORY_SEPARATOR .
+                    '.dreamfactory' . DIRECTORY_SEPARATOR .
+                    '.compiled' . DIRECTORY_SEPARATOR .
+                    sha1( $this->_storageId ), static::DEFAULT_CACHE_EXTENSION
+                );
+    }
+
+    /**
      * Constructs the virtual storage path
      *
      * @param string $append          What to append to the base
@@ -386,7 +470,7 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     {
         $_storageKey = null;
 
-        if ( $this->_partitionedLayout )
+        if ( $this->_partitioned )
         {
             $_storageKey = $this->_zone . DIRECTORY_SEPARATOR .
                 $this->_partition . DIRECTORY_SEPARATOR .
@@ -420,19 +504,19 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     /**
      * @return boolean
      */
-    public function isPartitionedLayout()
+    public function isPartitioned()
     {
-        return $this->_partitionedLayout;
+        return $this->_partitioned;
     }
 
     /**
-     * @param boolean $partitionedLayout
+     * @param boolean $partitioned
      *
      * @return Resolver
      */
-    public function setPartitionedLayout( $partitionedLayout )
+    public function setPartitioned( $partitioned )
     {
-        $this->_partitionedLayout = $partitionedLayout;
+        $this->_partitioned = $partitioned;
 
         return $this;
     }
@@ -453,23 +537,23 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     }
 
     /**
-     * @return CacheProvider
+     * @return string
      */
-    private function _getCache()
+    public function getHostname()
     {
-        if ( empty( $this->_storageId ) )
-        {
-            throw new \LogicException( 'Cannot create a cache file without a storage id.' );
-        }
+        return $this->_hostname;
+    }
 
-        return
-            $this->_cache = $this->_cache
-                ?: new FilesystemCache(
-                    sys_get_temp_dir() . DIRECTORY_SEPARATOR .
-                    '.dreamfactory' . DIRECTORY_SEPARATOR .
-                    '.compiled' . DIRECTORY_SEPARATOR .
-                    sha1( $this->_storageId ), static::DEFAULT_CACHE_EXTENSION
-                );
+    /**
+     * @param string $hostname
+     *
+     * @return Resolver
+     */
+    public function setHostname( $hostname )
+    {
+        $this->_hostname = $hostname;
+
+        return $this;
     }
 
 }
