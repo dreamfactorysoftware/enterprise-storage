@@ -51,6 +51,10 @@ class EnterpriseDefaults extends FactoryEnum
     /**
      * @var string
      */
+    const DEFAULT_DEV_DOC_ROOT = '/opt/dreamfactory/dsp/dsp-core/web';
+    /**
+     * @var string
+     */
     const MAINTENANCE_MARKER = '/var/www/.dfe_maintenance';
     /**
      * @var string
