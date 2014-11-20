@@ -15,21 +15,21 @@ class EnterpriseResources extends FactoryEnum
     /**
      * @var int
      */
-    const MOUNT_POINT = 0;
+    const MOUNT_POINT = 'mount_point';
     /**
      * @var int
      */
-    const INSTALL_ROOT = 1;
+    const INSTALL_ROOT = 'install_root';
     /**
      * @var int
      */
-    const STORAGE_PATH = 2;
+    const STORAGE_PATH = 'storage_path';
     /**
      * @var int
      */
-    const ZONE = 3;
+    const ZONE = 'zone';
     /**
      * @var int
      */
-    const PARTITION = 4;
+    const PARTITION = 'partition';
 }

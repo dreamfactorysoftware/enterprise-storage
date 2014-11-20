@@ -163,7 +163,7 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
             throw new \InvalidArgumentException( 'The $locator provided must be callable.' );
         }
 
-        if ( EnterpriseResources::contains( $resource ) )
+        if ( !EnterpriseResources::contains( $resource ) )
         {
             throw new \InvalidArgumentException( 'The $resource "' . $resource . '" is not valid.' );
         }
@@ -323,12 +323,16 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      */
     protected function _buildPath( $base, $append = null, $createIfMissing = true, $includesFile = false )
     {
+        static $_cache = null;
+
+        !$_cache && $_cache = $this->_getCache();
+
         $_appendage = ( $append ? DIRECTORY_SEPARATOR . ltrim( $append, DIRECTORY_SEPARATOR ) : null );
 
         //	Make a cache tag that includes the requested path...
         $_cacheKey = hash( static::DATA_STORAGE_HASH, $base . $_appendage );
 
-        $_path = $this->_getCache()->fetch( $_cacheKey );
+        $_path = $_cache->fetch( $_cacheKey );
 
         if ( empty( $_path ) )
         {
@@ -351,7 +355,7 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
             $_path .= $_appendage;
 
             //	Store path for next time...
-            $this->_getCache()->save( $_cacheKey, $_path, static::DEFAULT_CACHE_TTL );
+            $_cache->save( $_cacheKey, $_path, static::DEFAULT_CACHE_TTL );
         }
 
         return $_path;
@@ -492,7 +496,10 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      */
     public function getPrivateStorageKey( $legacyKey = null )
     {
-        return $this->getStorageKey( $legacyKey ) . static::PRIVATE_STORAGE_PATH;
+        return ltrim(
+            $this->getStorageKey( $legacyKey ) . DIRECTORY_SEPARATOR . ltrim( static::PRIVATE_STORAGE_PATH, DIRECTORY_SEPARATOR ),
+            DIRECTORY_SEPARATOR
+        );
     }
 
     /** @inheritdoc */
