@@ -350,6 +350,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
                 {
                     throw new FileSystemException( 'File system error creating directory: ' . $_checkPath );
                 }
+
+                @chmod( $_checkPath, 2775 );
             }
 
             $_path .= $_appendage;

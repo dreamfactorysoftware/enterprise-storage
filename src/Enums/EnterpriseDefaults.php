@@ -37,6 +37,14 @@ class EnterpriseDefaults extends FactoryEnum
      */
     const PLATFORM_VIRTUAL_SUBDOMAIN = '.cloud.dreamfactory.com';
     /**
+     * @type string
+     */
+    const INSTALL_ROOT_MARKER = '/.dreamfactory.php';
+    /**
+     * @type string
+     */
+    const COMPOSER_MARKER = '/vendor/autoload.php';
+    /**
      * @var string
      */
     const FABRIC_MARKER = '/var/www/.fabric_hosted';
@@ -71,10 +79,13 @@ class EnterpriseDefaults extends FactoryEnum
     /**
      * @var string Public storage cookie key
      */
-    const PUBLIC_STORAGE_COOKIE = 'dfe.storage_key';
+    const PUBLIC_STORAGE_COOKIE = 'dfe.storage_id';
     /**
      * @var string Private storage cookie key
      */
     const PRIVATE_STORAGE_COOKIE = 'dfe.private_storage_id';
-
+    /**
+     * @type string
+     */
+    const BOOTSTRAP_FILE = 'bootstrap.config.php';
 }

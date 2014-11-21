@@ -1,8 +1,6 @@
 <?php
 namespace DreamFactory\Library\Enterprise\Storage\Enums;
 
-use DreamFactory\Library\Utility\IfSet;
-
 /**
  * Standard DSP/DFE storage paths & keys
  */
@@ -48,29 +46,4 @@ class EnterprisePaths extends EnterpriseKeys
      * @type string Name of the snapshot storage directory relative to private base
      */
     const SNAPSHOT_PATH = '/snapshots';
-
-    //******************************************************************************
-    //* Methods
-    //******************************************************************************
-
-    /**
-     * @return bool True if this is an entprise/hosted instance (i.e. marker exists and doc root matches)
-     */
-    public static function hostedInstance()
-    {
-        static $_hostedInstance = null;
-        static $_validRoots = array(EnterpriseDefaults::DEFAULT_DOC_ROOT, EnterpriseDefaults::DEFAULT_DEV_DOC_ROOT);
-
-        if ( false === ( $_documentRoot = isset( $_SERVER ) ? IfSet::get( $_SERVER, 'DOCUMENT_ROOT' ) : false ) )
-        {
-            return false;
-        }
-
-        return
-            $_hostedInstance =
-                $_hostedInstance
-                    ?: in_array( $_documentRoot, $_validRoots ) &&
-                    ( file_exists( EnterpriseDefaults::FABRIC_MARKER ) || file_exists( EnterpriseDefaults::ENTERPRISE_MARKER ) );
-    }
-
 }
