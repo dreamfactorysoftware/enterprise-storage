@@ -97,7 +97,7 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      */
     protected $_paths;
     /**
-     * @type callable[] An array of resource locators
+     * @type ResourceLocator[] An array of resource locators
      */
     protected $_locators = array();
 
@@ -105,9 +105,14 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     //* Methods
     //*************************************************************************
 
+    public function __construct( $hostname, $mountPoint = null, $installRoot = null )
+    {
+    }
+
     /** @inheritdoc */
     public function initialize( $hostname, $mountPoint = null, $installRoot = null )
     {
+        //  Create our default services
         $this->_hostname = $hostname;
         $this->_zone = $this->_partition = null;
 
@@ -156,7 +161,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return $this
      */
-    public function registerLocator( $resource, $locator )
+    public
+    function registerLocator( $resource, $locator )
     {
         if ( !is_callable( $locator ) )
         {
@@ -180,7 +186,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return bool|mixed|null
      */
-    protected function _locateZone( $zone = null )
+    protected
+    function _locateZone( $zone = null )
     {
         //  Use location service if registered
         if ( isset( $_locators[EnterpriseResources::ZONE] ) )
@@ -211,7 +218,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return bool|string The partition or false if no partition available/used/needed
      */
-    protected function _locatePartition( $storageId )
+    protected
+    function _locatePartition( $storageId )
     {
         //  Use location service if registered
         if ( isset( $_locators[EnterpriseResources::PARTITION] ) )
@@ -235,7 +243,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    protected function _locateInstallRoot( $start = null )
+    protected
+    function _locateInstallRoot( $start = null )
     {
         $_path = $start ?: getcwd();
 
@@ -271,7 +280,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      * @throws FileSystemException
      * @return array
      */
-    protected function _createStructure( $mountPoint )
+    protected
+    function _createStructure( $mountPoint )
     {
         $_storagePath = rtrim( $mountPoint . static::STORAGE_PATH . DIRECTORY_SEPARATOR . $this->getStorageKey(), DIRECTORY_SEPARATOR );
         $_privatePath = rtrim( $mountPoint . static::STORAGE_PATH . DIRECTORY_SEPARATOR . $this->getPrivateStorageKey(), DIRECTORY_SEPARATOR );
@@ -321,7 +331,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      * @throws FileSystemException
      * @return string
      */
-    protected function _buildPath( $base, $append = null, $createIfMissing = true, $includesFile = false )
+    protected
+    function _buildPath( $base, $append = null, $createIfMissing = true, $includesFile = false )
     {
         static $_cache = null;
 
@@ -366,7 +377,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     /**
      * @return CacheProvider
      */
-    protected function _getCache()
+    protected
+    function _getCache()
     {
         if ( empty( $this->_storageId ) )
         {
@@ -392,7 +404,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    public function getStoragePath( $append = null, $createIfMissing = true, $includesFile = false )
+    public
+    function getStoragePath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->_paths[EnterpriseKeys::STORAGE_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
@@ -406,7 +419,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    public function getPrivatePath( $append = null, $createIfMissing = true, $includesFile = false )
+    public
+    function getPrivatePath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->_paths[EnterpriseKeys::PRIVATE_STORAGE_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
@@ -420,7 +434,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    public function getPrivateConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
+    public
+    function getPrivateConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->_paths[EnterpriseKeys::PRIVATE_CONFIG_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
@@ -434,7 +449,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    public function getConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
+    public
+    function getConfigPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->_paths[EnterpriseKeys::SYSTEM_CONFIG_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
@@ -448,7 +464,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    public function getPluginsPath( $append = null, $createIfMissing = true, $includesFile = false )
+    public
+    function getPluginsPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->_paths[EnterpriseKeys::PLUGINS_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
@@ -462,7 +479,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string
      */
-    public function getApplicationsPath( $append = null, $createIfMissing = true, $includesFile = false )
+    public
+    function getApplicationsPath( $append = null, $createIfMissing = true, $includesFile = false )
     {
         return $this->_buildPath( $this->_paths[EnterpriseKeys::APPLICATIONS_PATH_KEY], $append, $createIfMissing, $includesFile );
     }
@@ -472,7 +490,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string The zone/partition/id that make up the new public storage key. Local installs return null
      */
-    public function getStorageKey( $legacyKey = null )
+    public
+    function getStorageKey( $legacyKey = null )
     {
         $_storageKey = null;
 
@@ -496,7 +515,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return bool|string The zone/partition/id/tag that make up the new private storage key
      */
-    public function getPrivateStorageKey( $legacyKey = null )
+    public
+    function getPrivateStorageKey( $legacyKey = null )
     {
         return ltrim(
             $this->getStorageKey( $legacyKey ) . DIRECTORY_SEPARATOR . ltrim( static::PRIVATE_STORAGE_PATH, DIRECTORY_SEPARATOR ),
@@ -505,7 +525,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     }
 
     /** @inheritdoc */
-    public function getStorageId()
+    public
+    function getStorageId()
     {
         return $this->_storageId;
     }
@@ -513,7 +534,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     /**
      * @return boolean
      */
-    public function isPartitioned()
+    public
+    function isPartitioned()
     {
         return $this->_partitioned;
     }
@@ -523,7 +545,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return Resolver
      */
-    public function setPartitioned( $partitioned )
+    public
+    function setPartitioned( $partitioned )
     {
         $this->_partitioned = $partitioned;
 
@@ -535,7 +558,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return string Returns the path for $key or null if not yet set
      */
-    public function getPath( $key )
+    public
+    function getPath( $key )
     {
         if ( !EnterpriseKeys::contains( $key ) )
         {
@@ -548,7 +572,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     /**
      * @return string
      */
-    public function getHostname()
+    public
+    function getHostname()
     {
         return $this->_hostname;
     }
@@ -558,7 +583,8 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      *
      * @return Resolver
      */
-    public function setHostname( $hostname )
+    public
+    function setHostname( $hostname )
     {
         $this->_hostname = $hostname;
 
