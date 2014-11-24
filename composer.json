@@ -13,7 +13,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "dreamfactory/php-utils": "~1.0",
+        "dreamfactory/php-utils": "dev-feature/es-refactor as dev-master",
         "doctrine/cache": "@stable"
     },
     "require-dev": {
