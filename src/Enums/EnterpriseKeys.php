@@ -94,10 +94,6 @@ class EnterpriseKeys extends FactoryEnum
     //******************************************************************************
 
     /**
-     * @type string The hash algorithm to use for directory-creep
-     */
-    const DATA_STORAGE_HASH = 'sha256';
-    /**
      * @type string Zone name to use when testing. Set to null in production
      */
     const DEBUG_ZONE_NAME = null;
