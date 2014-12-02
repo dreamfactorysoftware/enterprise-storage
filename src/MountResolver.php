@@ -14,9 +14,9 @@ use DreamFactory\Library\Utility\IfSet;
 use DreamFactory\Library\Utility\Interfaces\ResourceLocatorLike;
 
 /**
- * DreamFactory Enterprise(tm) and Services Platform Storage Resolver
+ * DreamFactory Enterprise(tm) and Services Platform Storage Mount Point Resolver
  *
- * The default functionality (Resolver::$partitioned is set to TRUE) of this resolver is to provide partitioned
+ * The default functionality (MountResolver::$partitioned is set to TRUE) of this resolver is to provide partitioned
  * layout paths for the hosted storage area. The structure generated is as follows:
  *
  * /mount_point                             <----- Mount point/absolute path of storage area
@@ -50,7 +50,7 @@ use DreamFactory\Library\Utility\Interfaces\ResourceLocatorLike;
  * install_root/storage/.private/scripts
  * install_root/storage/.private/scripts.user
  */
-class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
+class MountResolver extends EnterprisePaths implements PlatformStorageResolverLike
 {
     //*************************************************************************
     //* Constants
@@ -70,15 +70,15 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
      */
     protected $_partitioned = true;
     /**
-     * @type string This instance's storage ID
+     * @type string This resolver's storage ID
      */
     protected $_storageId;
     /**
-     * @type string This instance's host name
+     * @type string This host name of this resolver
      */
     protected $_hostname;
     /**
-     * @type string The absolute storage root path
+     * @type string The absolute storage root path/mount
      */
     protected $_mountPoint = null;
     /**
@@ -525,7 +525,7 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     /**
      * @param boolean $partitioned
      *
-     * @return Resolver
+     * @return $this
      */
     public function setPartitioned( $partitioned )
     {
@@ -560,7 +560,7 @@ class Resolver extends EnterprisePaths implements PlatformStorageResolverLike
     /**
      * @param string $hostname
      *
-     * @return Resolver
+     * @return $this
      */
     public function setHostname( $hostname )
     {
