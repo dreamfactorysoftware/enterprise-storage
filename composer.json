@@ -15,6 +15,7 @@
     "prefer-stable":     false,
     "require":           {
         "dreamfactory/php-utils": "dev-feature/es-refactor as dev-master",
+        "knplabs/gaufrette":      "0.2.*@dev",
         "doctrine/cache":         "@stable",
         "symfony/filesystem":     "~2.4"
     },
