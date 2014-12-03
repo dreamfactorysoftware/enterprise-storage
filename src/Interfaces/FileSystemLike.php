@@ -60,6 +60,13 @@ interface FileSystemLike
     public function scandir( $directory, $sorting_order = null, $context = null );
 
     /**
+     * @param string $filename The name of the file
+     *
+     * @return \FilesystemIterator
+     */
+    public function getFile($filename);
+
+    /**
      * Reads entire file into a string
      *
      * @param string   $filename The name of the file to read
