@@ -4,20 +4,20 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0cc7a5870b235d7f5cf7de38fb12c8d0",
+    "hash": "c679ab11533a462944f73c25bba45017",
     "packages": [
         {
             "name": "doctrine/cache",
-            "version": "v1.3.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/cache.git",
-                "reference": "cf483685798a72c93bf4206e3dd6358ea07d64e7"
+                "reference": "9354b720cc97db4a914ab5aa28dbaa822cb3d300"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/cache/zipball/cf483685798a72c93bf4206e3dd6358ea07d64e7",
-                "reference": "cf483685798a72c93bf4206e3dd6358ea07d64e7",
+                "url": "https://api.github.com/repos/doctrine/cache/zipball/9354b720cc97db4a914ab5aa28dbaa822cb3d300",
+                "reference": "9354b720cc97db4a914ab5aa28dbaa822cb3d300",
                 "shasum": ""
             },
             "require": {
@@ -28,6 +28,7 @@
             },
             "require-dev": {
                 "phpunit/phpunit": ">=3.7",
+                "predis/predis": "~0.8",
                 "satooshi/php-coveralls": "~0.6"
             },
             "type": "library",
@@ -73,24 +74,23 @@
                 "cache",
                 "caching"
             ],
-            "time": "2014-09-17 14:24:04"
+            "time": "2014-12-03 01:17:20"
         },
         {
             "name": "dreamfactory/php-utils",
-            "version": "dev-feature/es-refactor",
+            "version": "dev-develop",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dreamfactorysoftware/php-utils.git",
-                "reference": "0ba6a6e86955987004d3ca3d10436bf18914fd1e"
+                "reference": "51c2fb974fb7551e246ea7b7b5493d9c01bd5e7f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/0ba6a6e86955987004d3ca3d10436bf18914fd1e",
-                "reference": "0ba6a6e86955987004d3ca3d10436bf18914fd1e",
+                "url": "https://api.github.com/repos/dreamfactorysoftware/php-utils/zipball/51c2fb974fb7551e246ea7b7b5493d9c01bd5e7f",
+                "reference": "51c2fb974fb7551e246ea7b7b5493d9c01bd5e7f",
                 "shasum": ""
             },
             "require": {
-                "dreamfactory/enterprise-storage": "dev-develop as dev-master",
                 "kisma/kisma": "*",
                 "symfony/dependency-injection": "*"
             },
@@ -125,7 +125,7 @@
                 "dreamfactory",
                 "utility"
             ],
-            "time": "2014-12-02 03:59:04"
+            "time": "2014-12-04 05:41:41"
         },
         {
             "name": "kisma/kisma",
@@ -494,53 +494,6 @@
                 }
             ],
             "description": "Symfony EventDispatcher Component",
-            "homepage": "http://symfony.com",
-            "time": "2014-12-02 20:19:50"
-        },
-        {
-            "name": "symfony/filesystem",
-            "version": "2.7.x-dev",
-            "target-dir": "Symfony/Component/Filesystem",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/Filesystem.git",
-                "reference": "c947f35fe28acea88ae6580d793ccfbc7b363f69"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Filesystem/zipball/c947f35fe28acea88ae6580d793ccfbc7b363f69",
-                "reference": "c947f35fe28acea88ae6580d793ccfbc7b363f69",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.7-dev"
-                }
-            },
-            "autoload": {
-                "psr-0": {
-                    "Symfony\\Component\\Filesystem\\": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Symfony Community",
-                    "homepage": "http://symfony.com/contributors"
-                },
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                }
-            ],
-            "description": "Symfony Filesystem Component",
             "homepage": "http://symfony.com",
             "time": "2014-12-02 20:19:50"
         },
@@ -1347,16 +1300,15 @@
         {
             "alias": "dev-master",
             "alias_normalized": "9999999-dev",
-            "version": "dev-feature/es-refactor",
+            "version": "dev-develop",
             "package": "dreamfactory/php-utils"
         }
     ],
     "minimum-stability": "dev",
     "stability-flags": {
         "dreamfactory/php-utils": 20,
-        "knplabs/gaufrette": 20,
-        "doctrine/cache": 0,
-        "phpunit/phpunit": 0
+        "phpunit/phpunit": 0,
+        "knplabs/gaufrette": 20
     },
     "prefer-stable": false,
     "platform": [],
