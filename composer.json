@@ -1,9 +1,9 @@
 {
-    "name":              "dreamfactory/enterprise-storage",
-    "description":       "DreamFactory Enterprise(tm) Storage Provider",
+    "name":              "dreamfactory/plugin-mounty",
+    "description":       "DreamFactory Services Platform(tm) Storage Mounter",
     "homepage":          "https://www.dreamfactory.com/",
     "type":              "library",
-    "keywords":          ["dreamfactory", "enterprise", "storage"],
+    "keywords":          ["dreamfactory", "enterprise", "storage", "plugin", "dropbox", "sftp"],
     "license":           ["Apache-2.0"],
     "authors":           [
         {
@@ -15,16 +15,15 @@
     "prefer-stable":     false,
     "require":           {
         "dreamfactory/php-utils": "dev-feature/es-refactor as dev-master",
-        "knplabs/gaufrette":      "0.2.*@dev",
-        "doctrine/cache":         "@stable",
-        "symfony/filesystem":     "~2.4"
+        "knplabs/gaufrette":      "0.2.*"
     },
     "require-dev":       {
-        "phpunit/phpunit": "@stable"
+        "phpunit/phpunit":   "@stable",
+        "knplabs/gaufrette": "0.2.*@dev"
     },
     "autoload":          {
         "psr-4": {
-            "DreamFactory\\Library\\Enterprise\\Storage\\": "src/"
+            "DreamFactory\\Platform\\Services\\Mounty\\": "src/"
         }
     },
     "extra":             {
