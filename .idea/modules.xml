@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/enterprise-storage.iml" filepath="$PROJECT_DIR$/.idea/enterprise-storage.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/plugin-mounty.iml" filepath="$PROJECT_DIR$/.idea/plugin-mounty.iml" />
     </modules>
   </component>
 </project>
