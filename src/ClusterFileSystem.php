@@ -8,7 +8,7 @@ use DreamFactory\Library\Enterprise\Storage\Interfaces\StorageAdapterLike;
 /**
  * An abstract class that provides a file system interface to a mounted service, device, or file system
  */
-class ClusterFileSystem extends Gaufre
+class ClusterFileSystem
 {
     //******************************************************************************
     //* Members
