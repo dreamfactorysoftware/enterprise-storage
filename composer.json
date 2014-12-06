@@ -23,7 +23,7 @@
     },
     "autoload":          {
         "psr-4": {
-            "DreamFactory\\Platform\\Services\\Mounty\\": "src/"
+            "DreamFactory\\Plugins\\Mounty\\": "src/"
         }
     },
     "extra":             {

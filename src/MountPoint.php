@@ -5,13 +5,6 @@ use DreamFactory\Library\Enterprise\Storage\Interfaces\FileSystemLike;
 use DreamFactory\Library\Enterprise\Storage\Interfaces\MountPointLike;
 use DreamFactory\Library\Enterprise\Storage\Interfaces\StorageAdapterLike;
 
-/**
- * An abstract class that provides a file system interface to a mounted service, device, or file system
- */
-abstract class MountPoint implements MountPointLike
-{
-    //******************************************************************************
-    //* Members
     //******************************************************************************
 
     /**
