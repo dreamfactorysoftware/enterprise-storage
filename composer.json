@@ -14,7 +14,7 @@
     "minimum-stability": "dev",
     "prefer-stable":     false,
     "require":           {
-        "dreamfactory/php-utils": "dev-develop as dev-master",
+        "dreamfactory/php-utils": "*",
         "knplabs/gaufrette":      "0.2.*"
     },
     "require-dev":       {
